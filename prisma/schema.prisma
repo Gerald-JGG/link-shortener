@@ -13,20 +13,33 @@ datasource db {
 
 model Link {
   id          String   @id @default(cuid())
-  originalUrl String
-  shortCode   String   @unique
-  title       String?
-  description String?
+  originalUrl String   @db.Text
+  shortCode   String   @unique @db.VarChar(10)
+  
+  // Metadata
+  title       String?  @db.VarChar(255)
+  description String?  @db.Text
+  
+  // Analytics
   clicks      Int      @default(0)
+  isActive    Boolean  @default(true)
+  password    String?  @db.VarChar(255)
+  
+  // Timestamps
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   expiresAt   DateTime?
+  lastClickAt DateTime?
   
-  // Relación con estadísticas de clicks
+  // Configuración
+  maxClicks   Int?
+  
+  // Relations
   clickStats  ClickStat[]
 
   @@index([shortCode])
   @@index([createdAt])
+  @@index([isActive])
 }
 
 model ClickStat {
@@ -34,14 +47,24 @@ model ClickStat {
   linkId    String
   link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
   
-  // Información del click
+  // Click info
   clickedAt DateTime @default(now())
-  userAgent String?
-  referer   String?
-  ipAddress String?
-  country   String?
-  city      String?
+  
+  // User info
+  userAgent String?  @db.Text
+  referer   String?  @db.Text
+  ipAddress String?  @db.VarChar(45)
+  
+  // Location
+  country   String?  @db.VarChar(2)
+  city      String?  @db.VarChar(100)
+  
+  // Device info
+  device    String?  @db.VarChar(50)
+  browser   String?  @db.VarChar(50)
+  os        String?  @db.VarChar(50)
   
   @@index([linkId])
   @@index([clickedAt])
+  @@index([country])
 }
